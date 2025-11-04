@@ -16,7 +16,7 @@ local loopBag = ShuffleBag.new(loops)
 
 function P.generateSolarSystem(numPlanets, minRadius, maxRadius, maxAttempts)
     -- place sun in center
-    P.addPlanet(width / 2, height / 2, maxRadius*2, maxRadius*2, true)
+    P.addPlanet(0, 0, maxRadius*2, maxRadius*2, true)
     
     for i = 2, numPlanets do
         local placed = false
@@ -29,7 +29,7 @@ function P.generateSolarSystem(numPlanets, minRadius, maxRadius, maxAttempts)
             local dist = math.random(100, 250)
             local x = width / 2 + math.cos(angle) * dist
             local y = height / 2 + math.sin(angle) * dist
-    
+            
             local tooClose = false
     
             for _, other in ipairs(P.solar_system) do
@@ -44,7 +44,7 @@ function P.generateSolarSystem(numPlanets, minRadius, maxRadius, maxAttempts)
             end
     
             if not tooClose then
-                P.addPlanet(x, y, minRadius, maxRadius)
+                P.addPlanet(angle, dist, minRadius, maxRadius)
                 placed = true
             end
         end
@@ -96,69 +96,90 @@ function P.clearPlanets()
     P.solar_system = {}
 end
 
-function P.updateBullets(dt)
-    for _, planet in ipairs(P.solar_system) do
-        local now = love.timer.getTime()
-        if now - planet.lastShot > 1.5 then  -- fire every 1.5 seconds
-            planet.lastShot = now
+-- function P.updateBullets(dt)
+--     for _, planet in ipairs(P.solar_system) do
+--         local now = love.timer.getTime()
+--         if now - planet.lastShot > 1.5 then  -- fire every 1.5 seconds
+--             planet.lastShot = now
 
-            local px, py = planet.body:getPosition()
-            local angle = math.random() * 2 * math.pi
-            local speed = 200
+--             local px, py = planet.body:getPosition()
+--             local angle = math.random() * 2 * math.pi
+--             local speed = 200
 
-            local bullet = {
-                body = love.physics.newBody(world, px, py, "dynamic"),
-                shape = love.physics.newCircleShape(3),
-                ttl = 3  -- seconds to live
-            }
-            bullet.fixture = love.physics.newFixture(bullet.body, bullet.shape)
-            bullet.body:setLinearVelocity(math.cos(angle) * speed, math.sin(angle) * speed)
-            bullet.body:setUserData({ _destroy = false })
-            bullet.fixture:setUserData({ id = "bullet" })
+--             local bullet = {
+--                 body = love.physics.newBody(world, px, py, "dynamic"),
+--                 shape = love.physics.newCircleShape(3),
+--                 ttl = 3  -- seconds to live
+--             }
+--             bullet.fixture = love.physics.newFixture(bullet.body, bullet.shape)
+--             bullet.body:setLinearVelocity(math.cos(angle) * speed, math.sin(angle) * speed)
+--             bullet.body:setUserData({ _destroy = false })
+--             bullet.fixture:setUserData({ id = "bullet" })
 
-            table.insert(planet.bullets, bullet)
-        end
+--             table.insert(planet.bullets, bullet)
+--         end
 
-        -- Update + remove dead bullets
-        for i = #planet.bullets, 1, -1 do
-            local b = planet.bullets[i]
-            b.ttl = b.ttl - dt
-            local data = b.body:getUserData()
-            local shouldDestroy = (b.ttl <= 0) or (data and data._destroy)
+--         -- Update + remove dead bullets
+--         for i = #planet.bullets, 1, -1 do
+--             local b = planet.bullets[i]
+--             b.ttl = b.ttl - dt
+--             local data = b.body:getUserData()
+--             local shouldDestroy = (b.ttl <= 0) or (data and data._destroy)
 
-            if shouldDestroy then
-                if not b.body:isDestroyed() then
-                    b.body:destroy()
-                end
-                table.remove(planet.bullets, i)
-            end
-        end
+--             if shouldDestroy then
+--                 if not b.body:isDestroyed() then
+--                     b.body:destroy()
+--                 end
+--                 table.remove(planet.bullets, i)
+--             end
+--         end
 
 
-    end
+--     end
+-- end
+
+-- function P.drawBullets()
+--     love.graphics.setColor(1, 1, 0.5)
+--     for _, planet in ipairs(P.solar_system) do
+--         for _, b in ipairs(planet.bullets) do
+--             local x, y = b.body:getPosition()
+--             love.graphics.circle("fill", x, y, b.shape:getRadius())
+--         end
+--     end
+-- end
+
+function P.movePlanet(planet, dt)
+    planet.angle = planet.angle + planet.rotationSpeed * dt
+
+    local x = width / 2 + math.cos(planet.angle) * planet.dist
+    local y = height / 2 + math.sin(planet.angle) * planet.dist
+
+    planet.body:setPosition(x,y)
 end
 
-function P.drawBullets()
-    love.graphics.setColor(1, 1, 0.5)
-    for _, planet in ipairs(P.solar_system) do
-        for _, b in ipairs(planet.bullets) do
-            local x, y = b.body:getPosition()
-            love.graphics.circle("fill", x, y, b.shape:getRadius())
-        end
-    end
-end
-
-function P.addPlanet(x, y, minRadius, maxRadius, isSun)
+function P.addPlanet(angle, dist, minRadius, maxRadius, isSun)
     local forceColor = null
     if(isSun) then forceColor = {1,1,1} end
 
+    local bodyType = "dynamic"
+    if(isSun) then bodyType = "static" end
+
+    local x = width / 2 + math.cos(angle) * dist
+    local y = height / 2 + math.sin(angle) * dist
+
+    local radius = love.math.random(minRadius, maxRadius)
+
     local planet = {}
+
     planet.alive = true
-    planet.body = love.physics.newBody(world, x, y, "static")
-    planet.shape = love.physics.newCircleShape(love.math.random(minRadius, maxRadius))
+    planet.body = love.physics.newBody(world, x, y, bodyType)
+    planet.shape = love.physics.newCircleShape(radius)
     planet.color = forceColor or colorBag:next()
     planet.loop = loopBag:next()
     planet.sun = isSun
+    planet.angle = angle
+    planet.dist = dist
+    planet.rotationSpeed = radius / 150 -- TEMP
     planet.fixture = love.physics.newFixture(planet.body, planet.shape)
 
     planet.bullets = {}

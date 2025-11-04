@@ -51,6 +51,11 @@ function love.update(dt)
         -- Gravity well pull
         for _, planet in ipairs(planets.solar_system) do        
             if planet.alive == true then
+                -- update planet positions
+                if not planet.sun then
+                    planets.movePlanet(planet, dt)
+                end
+
                 local sx, sy = ship.body:getPosition()
                 local px, py = planet.body:getPosition()
 
