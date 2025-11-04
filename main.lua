@@ -1,4 +1,4 @@
-local planets = require("planetHandling")
+local planets = require("utils.planetHandling")
 
 function love.load()
     math.randomseed(os.time())

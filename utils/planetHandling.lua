@@ -1,5 +1,5 @@
-local ShuffleBag = require("shufflebag")
-local loops = require("loops")
+local ShuffleBag = require("classes.shufflebag")
+local loops = require("assets.loops")
 local P = {};
 
 P.solar_system = {}
