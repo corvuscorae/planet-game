@@ -55,35 +55,36 @@ function P.generateSolarSystem(numPlanets, minRadius, maxRadius, maxAttempts)
     end
 end
 
-function P.destroyPlanet(planet)
-    if(planet.sun) then return end
+function P.activatePlanet(planet)
+    --if(planet.sun) then return end
+    if not planet.sun and not P.solar_system[1].alive then return end -- sun not active
 
-    if (love.timer.getTime() - planet.explosionTime) < 0.02 then
+    if (love.timer.getTime() - planet.activationTime) < 0.02 then
         love.graphics.setColor(1, 0.5, 0.1, 0.8)
         love.graphics.circle("fill", planet.body:getX(), planet.body:getY(), 5*planet.shape:getRadius())
     else
         -- Play loop
-        if planet.alive and not planet.loop:isPlaying() then
+        if not planet.alive and not planet.loop:isPlaying() then
             planet.loop:setVolume(0.7)
             planet.loop:setLooping(true)
             love.audio.play(planet.loop)
         end
 
         -- Safe to finalize destruction
-        if planet.alive then
+        if not planet.alive then
             print("planet " .. planet.fixture:getUserData().index .. " destroyed")
-            planet.alive = false
-            planet.body:destroy()
+            planet.alive = true
+            --planet.body:destroy()
         end
 
         -- Remove from solar_system
-        for i, p in ipairs(P.solar_system) do
-            if p == planet then
-                table.remove(P.solar_system, i)
-                destroyedPlanets = destroyedPlanets + 1
-                break
-            end
-        end
+        -- for i, p in ipairs(P.solar_system) do
+        --     if p == planet then
+        --         table.remove(P.solar_system, i)
+        --         destroyedPlanets = destroyedPlanets + 1
+        --         break
+        --     end
+        -- end
     end
 end
 
@@ -158,7 +159,7 @@ function P.movePlanet(planet, dt)
 end
 
 function P.addPlanet(angle, dist, minRadius, maxRadius, isSun)
-    local forceColor = null
+    local forceColor
     if(isSun) then forceColor = {1,1,1} end
 
     local bodyType = "dynamic"
@@ -171,7 +172,7 @@ function P.addPlanet(angle, dist, minRadius, maxRadius, isSun)
 
     local planet = {}
 
-    planet.alive = true
+    planet.alive = false
     planet.body = love.physics.newBody(world, x, y, bodyType)
     planet.shape = love.physics.newCircleShape(radius)
     planet.color = forceColor or colorBag:next()
@@ -187,6 +188,11 @@ function P.addPlanet(angle, dist, minRadius, maxRadius, isSun)
 
     table.insert(P.solar_system, planet)
     planet.fixture:setUserData({ id="planet", index=#P.solar_system })
+end
+
+function P.getGrey(color)
+    local grey = (color[1] + color[2] + color[3]) / 3
+    return {grey, grey, grey}    
 end
 
 return P

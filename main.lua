@@ -50,7 +50,7 @@ function love.update(dt)
 
         -- Gravity well pull
         for _, planet in ipairs(planets.solar_system) do        
-            if planet.alive == true then
+            --if planet.alive == true then
                 -- update planet positions
                 if not planet.sun then
                     planets.movePlanet(planet, dt)
@@ -70,7 +70,7 @@ function love.update(dt)
                     local fy = math.sin(angle) * forceMag
                     ship.body:applyForce(fx, fy)
                 end
-            end
+            --end
         end
 
         -- ROTATE LEFT/RIGHT
@@ -212,14 +212,16 @@ function love.draw()
         -- Draw planets
         --planets.drawBullets()
         for _, planet in ipairs(planets.solar_system) do        
-            if planet.alive == true then
-                love.graphics.setColor(planet.color)
+            --if planet.alive == true then
+                local color = planet.alive and planet.color or planets.getGrey(planet.color)
+                
+                love.graphics.setColor(color)
                 love.graphics.circle("fill", planet.body:getX(), planet.body:getY(), planet.shape:getRadius())
 
-                if planet.explosionTime then
-                    planets.destroyPlanet(planet)
+                if planet.activationTime then
+                    planets.activatePlanet(planet)
                 end
-            end
+            --end
         end
 
         -- Ship is invisible: do not draw ship polygon or thrust flame
@@ -250,10 +252,12 @@ function beginContact(a, b, coll)
        (aData.id == "ship" and bData.id == "planet") then
 
         for _, planet in ipairs(planets.solar_system) do
-            if planet.alive then
+            if not planet.alive then
                 local pData = planet.fixture:getUserData()
                 if pData and (pData.index == aData.index or pData.index == bData.index) then
-                    planet.explosionTime = love.timer.getTime() -- trigger planet destruction
+                    if planets.solar_system[1].alive or pData.index == 1 then
+                        planet.activationTime = love.timer.getTime() -- trigger planet destruction
+                    end
                 end
             end
         end
