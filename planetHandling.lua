@@ -15,7 +15,10 @@ local colorBag = ShuffleBag.new(colors)
 local loopBag = ShuffleBag.new(loops)
 
 function P.generateSolarSystem(numPlanets, minRadius, maxRadius, maxAttempts)
-    for i = 1, numPlanets do
+    -- place sun in center
+    P.addPlanet(width / 2, height / 2, maxRadius*2, maxRadius*2, true)
+    
+    for i = 2, numPlanets do
         local placed = false
         local attempts = 0
     
@@ -41,19 +44,7 @@ function P.generateSolarSystem(numPlanets, minRadius, maxRadius, maxAttempts)
             end
     
             if not tooClose then
-                local planet = {}
-                planet.alive = true
-                planet.body = love.physics.newBody(world, x, y, "static")
-                planet.shape = love.physics.newCircleShape(love.math.random(minRadius, maxRadius))
-                planet.color = colorBag:next()
-                planet.loop = loopBag:next()
-                planet.fixture = love.physics.newFixture(planet.body, planet.shape)
-
-                planet.bullets = {}
-                planet.lastShot = love.timer.getTime()
-    
-                table.insert(P.solar_system, planet)
-                planet.fixture:setUserData({ id="planet", index=#P.solar_system })
+                P.addPlanet(x, y, minRadius, maxRadius)
                 placed = true
             end
         end
@@ -65,6 +56,8 @@ function P.generateSolarSystem(numPlanets, minRadius, maxRadius, maxAttempts)
 end
 
 function P.destroyPlanet(planet)
+    if(planet.sun) then return end
+
     if (love.timer.getTime() - planet.explosionTime) < 0.02 then
         love.graphics.setColor(1, 0.5, 0.1, 0.8)
         love.graphics.circle("fill", planet.body:getX(), planet.body:getY(), 5*planet.shape:getRadius())
@@ -155,6 +148,24 @@ function P.drawBullets()
     end
 end
 
+function P.addPlanet(x, y, minRadius, maxRadius, isSun)
+    local forceColor = null
+    if(isSun) then forceColor = {1,1,1} end
 
+    local planet = {}
+    planet.alive = true
+    planet.body = love.physics.newBody(world, x, y, "static")
+    planet.shape = love.physics.newCircleShape(love.math.random(minRadius, maxRadius))
+    planet.color = forceColor or colorBag:next()
+    planet.loop = loopBag:next()
+    planet.sun = isSun
+    planet.fixture = love.physics.newFixture(planet.body, planet.shape)
+
+    planet.bullets = {}
+    planet.lastShot = love.timer.getTime()
+
+    table.insert(P.solar_system, planet)
+    planet.fixture:setUserData({ id="planet", index=#P.solar_system })
+end
 
 return P
