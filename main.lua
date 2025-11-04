@@ -284,5 +284,10 @@ function love.keypressed(key)
         playerHits = 0
         gameOver = false
         planets.generateSolarSystem(numPlanets, planetMinRadius, planetMaxRadius, 1000)
+
+        -- reset ship
+        ship.body:setLinearVelocity(0,0)
+        ship.body:setAngularVelocity(0,0)
+        ship.body:setPosition(width/4, height/4)
     end
 end

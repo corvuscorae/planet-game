@@ -72,7 +72,7 @@ function P.activatePlanet(planet)
 
         -- Safe to finalize destruction
         if not planet.alive then
-            print("planet " .. planet.fixture:getUserData().index .. " destroyed")
+            print("planet " .. planet.fixture:getUserData().index .. " activated")
             planet.alive = true
             --planet.body:destroy()
         end
