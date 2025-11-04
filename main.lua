@@ -46,7 +46,7 @@ function love.update(dt)
     end
     if not gameOver then
         world:update(dt)
-        planets.updateBullets(dt)
+        --planets.updateBullets(dt)
 
         -- Gravity well pull
         for _, planet in ipairs(planets.solar_system) do        
@@ -205,7 +205,7 @@ function love.draw()
         love.graphics.circle("line", sx, sy, lensRadius)
 
         -- Draw planets
-        planets.drawBullets()
+        --planets.drawBullets()
         for _, planet in ipairs(planets.solar_system) do        
             if planet.alive == true then
                 love.graphics.setColor(planet.color)
