@@ -18,14 +18,18 @@ local width, height = Settings.width, Settings.height
 local Solar = {}
 Solar.__index = Solar
 
-function Solar:new(world, numPlanets, minRadius, maxRadius, maxAttempts)
+function Solar:new(world, planets, minRadius, maxRadius, maxAttempts)
     local instance = {
         index = index,
         system = {}
     }
     setmetatable(instance, Solar)
 
-    instance:generateSystem(world, numPlanets, minRadius, maxRadius, maxAttempts)
+    if type(planets) == "number" then
+        instance:generateSystem(world, planets, minRadius, maxRadius, maxAttempts)
+    else -- assuming it's a snapshot
+        instance:load(planets, world)
+    end
 
     return instance
 end
@@ -80,18 +84,65 @@ function Solar:activatePlanet(planet)
         love.graphics.circle("fill", planet.body:getX(), planet.body:getY(), 5*planet.shape:getRadius())
     else
         -- Play loop
-        if not planet.alive and not planet.loop:isPlaying() then
+        if not planet.loop:isPlaying() then
             planet.loop:setVolume(0.7)
             planet.loop:setLooping(true)
             love.audio.play(planet.loop)
         end
 
-        -- Safe to finalize destruction
         if not planet.alive then
             print("planet " .. planet.fixture:getUserData().index .. " activated")
             planet.alive = true
-            --planet.body:destroy()
         end
+    end
+end
+
+function Solar:snapshot()
+    local s = {}
+    for i, planet in ipairs(self.system) do
+        s[i] = {
+            alive = planet.alive,
+            shape = planet.shape ,
+            color = planet.color,
+            loop = planet.loop,
+            sun = planet.sun,
+            angle = planet.angle,
+            dist = planet.dist,
+            radius = planet.radius,
+            rotationSpeed = planet.rotationSpeed,
+            activationTime = planet.activationTime
+        }
+    end
+
+    return s
+end
+
+function Solar:load(snapshot, world)
+    for i, p in ipairs(snapshot) do
+        local planet = {}
+
+        planet.alive = p.alive
+        planet.shape = p.shape 
+        planet.color = p.color
+        planet.loop = p.loop
+        planet.sun = p.sun
+        planet.angle = p.angle
+        planet.dist = p.dist
+        planet.radius = p.radius
+        planet.rotationSpeed = p.rotationSpeed 
+
+        local x = width / 2 + math.cos(p.angle) * p.dist
+        local y = height / 2 + math.sin(p.angle) * p.dist
+
+        local bodyType = p.sun and "static" or "dynamic"
+
+        planet.body = love.physics.newBody(world, x, y, bodyType)
+        planet.fixture = love.physics.newFixture(planet.body, planet.shape)
+
+        planet.activationTime = p.activationTime 
+
+        table.insert(self.system, planet)
+        planet.fixture:setUserData({ id="planet", index=#self.system })
     end
 end
 
@@ -126,8 +177,7 @@ end
 function Solar:addPlanet(world, angle, dist, minRadius, maxRadius, isSun)
     local forceColor = isSun and {1,1,1} or nil
 
-    local bodyType = "dynamic"
-    if(isSun) then bodyType = "static" end
+    local bodyType = isSun and "static" or "dynamic"
 
     local x = width / 2 + math.cos(angle) * dist
     local y = height / 2 + math.sin(angle) * dist
@@ -137,18 +187,19 @@ function Solar:addPlanet(world, angle, dist, minRadius, maxRadius, isSun)
     local planet = {}
 
     planet.alive = false
-    planet.body = love.physics.newBody(world, x, y, bodyType)
-    planet.shape = love.physics.newCircleShape(radius)
+    
     planet.color = forceColor or colorBag:next()
     planet.loop = loopBag:next()
     planet.sun = isSun
     planet.angle = angle
     planet.dist = dist
-    planet.rotationSpeed = radius / 150 -- TEMP
-    planet.fixture = love.physics.newFixture(planet.body, planet.shape)
+    planet.radius = radius
+    planet.shape = love.physics.newCircleShape(radius)
+    planet.rotationSpeed = radius / 150 
+    planet.activationTime = nil
 
-    planet.bullets = {}
-    planet.lastShot = love.timer.getTime()
+    planet.body = love.physics.newBody(world, x, y, bodyType)
+    planet.fixture = love.physics.newFixture(planet.body, planet.shape)
 
     table.insert(self.system, planet)
     planet.fixture:setUserData({ id="planet", index=#self.system })

@@ -13,7 +13,7 @@ function solar:load(args)
     world:setCallbacks(beginContact, endContact)
 
     -- Physics settings/flags
-    gravityStrength = 3000 
+    gravityStrength = 2000 
     isThrusting = false
 
     -- Create the ship
@@ -23,7 +23,7 @@ function solar:load(args)
     local systemConf = args.planets  
     planets = Solar:new(
         world,
-        systemConf.numPlanets,
+        snapshot or systemConf.numPlanets,
         systemConf.planetMinRadius,
         systemConf.planetMaxRadius,
         1000
@@ -262,6 +262,7 @@ function solar:keypressed(key)
     if key == "return" then
         love.audio.stop()
 
+        snapshot = planets:snapshot()
         planets:clearPlanets()
 
         ship.body:setLinearVelocity(0,0)
