@@ -1,8 +1,6 @@
+local Settings = require("utils.settings") 
 local ShuffleBag = require("classes.shufflebag")
 local loops = require("assets.loops")
-local P = {};
-
-P.solar_system = {}
 local colors = {
     {1, 0.5, 0.4},  -- pink
     {1, 0.7, 0.4},  -- light orange
@@ -14,9 +12,27 @@ local colors = {
 local colorBag = ShuffleBag.new(colors)
 local loopBag = ShuffleBag.new(loops)
 
-function P.generateSolarSystem(numPlanets, minRadius, maxRadius, maxAttempts)
+local width, height = Settings.width, Settings.height
+
+-- CLASS ---
+local Solar = {}
+Solar.__index = Solar
+
+function Solar:new(world, numPlanets, minRadius, maxRadius, maxAttempts)
+    local instance = {
+        index = index,
+        system = {}
+    }
+    setmetatable(instance, Solar)
+
+    instance:generateSystem(world, numPlanets, minRadius, maxRadius, maxAttempts)
+
+    return instance
+end
+
+function Solar:generateSystem(world, numPlanets, minRadius, maxRadius, maxAttempts)
     -- place sun in center
-    P.addPlanet(0, 0, maxRadius*2, maxRadius*2, true)
+    self:addPlanet(world, 0, 0, maxRadius*2, maxRadius*2, true)
     
     for i = 2, numPlanets do
         local placed = false
@@ -32,7 +48,7 @@ function P.generateSolarSystem(numPlanets, minRadius, maxRadius, maxAttempts)
             
             local tooClose = false
     
-            for _, other in ipairs(P.solar_system) do
+            for _, other in ipairs(self.system) do
                 local ox, oy = other.body:getPosition()
                 local dx = x - ox
                 local dy = y - oy
@@ -44,7 +60,7 @@ function P.generateSolarSystem(numPlanets, minRadius, maxRadius, maxAttempts)
             end
     
             if not tooClose then
-                P.addPlanet(angle, dist, minRadius, maxRadius)
+                self:addPlanet(world, angle, dist, minRadius, maxRadius)
                 placed = true
             end
         end
@@ -55,9 +71,9 @@ function P.generateSolarSystem(numPlanets, minRadius, maxRadius, maxAttempts)
     end
 end
 
-function P.activatePlanet(planet)
+function Solar:activatePlanet(planet)
     --if(planet.sun) then return end
-    if not planet.sun and not P.solar_system[1].alive then return end -- sun not active
+    if not planet.sun and not self.system[1].alive then return end -- sun not active
 
     if (love.timer.getTime() - planet.activationTime) < 0.02 then
         love.graphics.setColor(1, 0.5, 0.1, 0.8)
@@ -76,80 +92,29 @@ function P.activatePlanet(planet)
             planet.alive = true
             --planet.body:destroy()
         end
-
-        -- Remove from solar_system
-        -- for i, p in ipairs(P.solar_system) do
-        --     if p == planet then
-        --         table.remove(P.solar_system, i)
-        --         destroyedPlanets = destroyedPlanets + 1
-        --         break
-        --     end
-        -- end
     end
 end
 
-function P.clearPlanets()
-    for _, planet in ipairs(P.solar_system) do
+function Solar:clearPlanets()
+    for _, planet in ipairs(self.system) do
+        if planet.fixture and not planet.fixture:isDestroyed() then
+                planet.fixture:destroy()
+        end
         if planet.body and not planet.body:isDestroyed() then
             planet.body:destroy()
         end
     end
-    P.solar_system = {}
+    self.system = {}
 end
 
--- function P.updateBullets(dt)
---     for _, planet in ipairs(P.solar_system) do
---         local now = love.timer.getTime()
---         if now - planet.lastShot > 1.5 then  -- fire every 1.5 seconds
---             planet.lastShot = now
+function Solar:resetPlanets()
+    for _, planet in ipairs(self.system) do
+        planet.alive = false
+        planet.activationTime = null
+    end
+end
 
---             local px, py = planet.body:getPosition()
---             local angle = math.random() * 2 * math.pi
---             local speed = 200
-
---             local bullet = {
---                 body = love.physics.newBody(world, px, py, "dynamic"),
---                 shape = love.physics.newCircleShape(3),
---                 ttl = 3  -- seconds to live
---             }
---             bullet.fixture = love.physics.newFixture(bullet.body, bullet.shape)
---             bullet.body:setLinearVelocity(math.cos(angle) * speed, math.sin(angle) * speed)
---             bullet.body:setUserData({ _destroy = false })
---             bullet.fixture:setUserData({ id = "bullet" })
-
---             table.insert(planet.bullets, bullet)
---         end
-
---         -- Update + remove dead bullets
---         for i = #planet.bullets, 1, -1 do
---             local b = planet.bullets[i]
---             b.ttl = b.ttl - dt
---             local data = b.body:getUserData()
---             local shouldDestroy = (b.ttl <= 0) or (data and data._destroy)
-
---             if shouldDestroy then
---                 if not b.body:isDestroyed() then
---                     b.body:destroy()
---                 end
---                 table.remove(planet.bullets, i)
---             end
---         end
-
-
---     end
--- end
-
--- function P.drawBullets()
---     love.graphics.setColor(1, 1, 0.5)
---     for _, planet in ipairs(P.solar_system) do
---         for _, b in ipairs(planet.bullets) do
---             local x, y = b.body:getPosition()
---             love.graphics.circle("fill", x, y, b.shape:getRadius())
---         end
---     end
--- end
-
-function P.movePlanet(planet, dt)
+function Solar:movePlanet(planet, dt)
     planet.angle = planet.angle + planet.rotationSpeed * dt
 
     local x = width / 2 + math.cos(planet.angle) * planet.dist
@@ -158,9 +123,8 @@ function P.movePlanet(planet, dt)
     planet.body:setPosition(x,y)
 end
 
-function P.addPlanet(angle, dist, minRadius, maxRadius, isSun)
-    local forceColor
-    if(isSun) then forceColor = {1,1,1} end
+function Solar:addPlanet(world, angle, dist, minRadius, maxRadius, isSun)
+    local forceColor = isSun and {1,1,1} or nil
 
     local bodyType = "dynamic"
     if(isSun) then bodyType = "static" end
@@ -186,13 +150,13 @@ function P.addPlanet(angle, dist, minRadius, maxRadius, isSun)
     planet.bullets = {}
     planet.lastShot = love.timer.getTime()
 
-    table.insert(P.solar_system, planet)
-    planet.fixture:setUserData({ id="planet", index=#P.solar_system })
+    table.insert(self.system, planet)
+    planet.fixture:setUserData({ id="planet", index=#self.system })
 end
 
-function P.getGrey(color)
+function Solar:getGrey(color)
     local grey = (color[1] + color[2] + color[3]) / 3
     return {grey, grey, grey}    
 end
 
-return P
+return Solar
