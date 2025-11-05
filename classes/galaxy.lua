@@ -9,6 +9,7 @@ function Galaxy:new(index, solsysConfig, world)
     setmetatable(instance, Galaxy)
 
     instance.system = instance:populate(solsysConfig, world)
+    instance.system.snapshot = nil
 
     return instance
 end
@@ -19,9 +20,15 @@ function Galaxy:populate(config, world)
 
     for i = 1, num do
         local system = {
-            numPlanets = config.numPlanets, 
-            planetMinRadius = config.planetMinRadius, 
-            planetMaxRadius = config.planetMaxRadius, 
+            config = {
+                index = i,
+                numPlanets = config.numPlanets, 
+                planetMinRadius = config.planetMinRadius, 
+                planetMaxRadius = config.planetMaxRadius, 
+                seed = math.random(0, 10000)
+            },
+            snapshot = nil,
+            -- visited = false
         }
 
         table.insert(g, system)

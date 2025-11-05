@@ -4,7 +4,10 @@ local Settings = require("utils.settings")
 local solar = {}
 
 function solar:load(args)
-    math.randomseed(os.time())
+    local systemDat = args.planets  
+    
+    math.randomseed(systemDat.config.seed)
+
     width = Settings.width
     height = Settings.height
 
@@ -18,16 +21,17 @@ function solar:load(args)
 
     -- Create the ship
     ship = args.ship
+    index = args.index
 
     -- Make planets
-    local systemConf = args.planets  
     planets = Solar:new(
         world,
-        snapshot or systemConf.numPlanets,
-        systemConf.planetMinRadius,
-        systemConf.planetMaxRadius,
+        systemDat.snapshot or systemDat.config.numPlanets,
+        systemDat.config.planetMinRadius,
+        systemDat.config.planetMaxRadius,
         1000
     )
+    -- systemDat.visited = true
     activatedPlanets = 0
 
     -- Graphics setup
@@ -237,16 +241,6 @@ function beginContact(a, b, coll)
         end
 
     end
-
-    -- Bullet-Player collision
-    if (aData.id == "bullet" and bData.id == "ship") or
-       (aData.id == "ship" and bData.id == "bullet") then
-        print("Player hit by bullet!")
-        -- remove bullet on contact
-        local bulletBody = (aData.id == "bullet") and a:getBody() or b:getBody()
-        local data = bulletBody:getUserData()
-        data._destroy = true
-    end
 end
 
 function solar:keypressed(key)
@@ -262,14 +256,14 @@ function solar:keypressed(key)
     if key == "return" then
         love.audio.stop()
 
-        snapshot = planets:snapshot()
+        local snapshot = planets:snapshot()
         planets:clearPlanets()
 
         ship.body:setLinearVelocity(0,0)
         ship.body:setAngularVelocity(0,0)
         ship.body:setPosition(width/4, height/4)
         
-        solar.setScene("galaxy")
+        solar.setScene("galaxy", {index = index, snapshot = snapshot})
     end
 end
 

@@ -28,7 +28,7 @@ function Solar:new(world, planets, minRadius, maxRadius, maxAttempts)
     if type(planets) == "number" then
         instance:generateSystem(world, planets, minRadius, maxRadius, maxAttempts)
     else -- assuming it's a snapshot
-        instance:load(planets, world)
+        instance:loadSnapshot(planets, world)
     end
 
     return instance
@@ -36,7 +36,8 @@ end
 
 function Solar:generateSystem(world, numPlanets, minRadius, maxRadius, maxAttempts)
     -- place sun in center
-    self:addPlanet(world, 0, 0, maxRadius*2, maxRadius*2, true)
+    local m = math.random(1.5, 3)
+    self:addPlanet(world, 0, 0, maxRadius*m, maxRadius*m, true)
     
     for i = 2, numPlanets do
         local placed = false
@@ -91,7 +92,7 @@ function Solar:activatePlanet(planet)
         end
 
         if not planet.alive then
-            print("planet " .. planet.fixture:getUserData().index .. " activated")
+            --print("planet " .. planet.fixture:getUserData().index .. " activated")
             planet.alive = true
         end
     end
@@ -117,7 +118,7 @@ function Solar:snapshot()
     return s
 end
 
-function Solar:load(snapshot, world)
+function Solar:loadSnapshot(snapshot, world)
     for i, p in ipairs(snapshot) do
         local planet = {}
 
