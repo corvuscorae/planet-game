@@ -1,4 +1,4 @@
-local Solar = require("classes.solar_system")
+local SolarSystem = require("classes.solar_system")
 
 local Settings = require("utils.settings") 
 local solar = {}
@@ -24,7 +24,7 @@ function solar:load(args)
     index = args.index
 
     -- Make planets
-    planets = Solar:new(
+    planets = SolarSystem:new(
         world,
         systemDat.snapshot or systemDat.config.numPlanets,
         systemDat.config.planetMinRadius,
@@ -45,7 +45,7 @@ function solar:update(dt)
     for _, planet in ipairs(planets.system) do        
         -- update planet positions
         if not planet.sun then
-            planets:movePlanet(planet, dt)
+            planets:moveBody(planet, dt)
         end
 
         local sx, sy = ship.body:getPosition()
@@ -199,7 +199,7 @@ function solar:draw()
         love.graphics.circle("fill", planet.body:getX(), planet.body:getY(), planet.shape:getRadius())
 
         if planet.activationTime then
-            planets:activatePlanet(planet)
+            planets:activateBody(planet)
         end
     end
 
@@ -246,7 +246,7 @@ end
 function solar:keypressed(key)
     if key == "r" then
         love.audio.stop()
-        planets:resetPlanets()
+        planets:resetBodies()
 
         -- reset ship
         ship.body:setLinearVelocity(0,0)
@@ -257,7 +257,7 @@ function solar:keypressed(key)
         love.audio.stop()
 
         local snapshot = planets:snapshot()
-        planets:clearPlanets()
+        planets:clearBodies()
 
         ship.body:setLinearVelocity(0,0)
         ship.body:setAngularVelocity(0,0)
