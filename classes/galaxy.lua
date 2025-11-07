@@ -1,28 +1,38 @@
+local System = require("classes.system")
+
 local Galaxy = {}
 Galaxy.__index = Galaxy
+setmetatable(Galaxy, {__index = System})
 
-function Galaxy:new(index, solsysConfig, world)
-    local instance = {
-        index = index,
-        system = {}
-    }
+function Galaxy:new(world, config, index)
+    local instance = System:new(world, "galaxy")
     setmetatable(instance, Galaxy)
 
-    instance.system = instance:populate(solsysConfig, world)
-    instance.system.snapshot = nil
+    instance.index = index
+
+    -- generate a collection of solar systems
+    instance.solarSystems = instance:populate(config, world)
+    instance.solarSystems.snapshot = nil
+
+    -- make a drawable system to represent galaxy
+    if type(config.systems) == "number" then
+        instance:generateSystem(config.systems)
+    else -- assuming it's a snapshot
+        instance:loadSnapshot(config.systems, world)
+    end
 
     return instance
 end
 
 function Galaxy:populate(config, world)
     local g = {}
-    local num = config.numSystems
+    local num = config.systems
 
     for i = 1, num do
         local system = {
             config = {
                 index = i,
-                numPlanets = config.numPlanets, 
+                numPlanets = config.planets, 
                 planetMinRadius = config.planetMinRadius, 
                 planetMaxRadius = config.planetMaxRadius, 
                 seed = math.random(0, 10000)

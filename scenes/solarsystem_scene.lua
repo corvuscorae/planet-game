@@ -4,6 +4,14 @@ local Settings = require("utils.settings")
 local solar = {}
 
 function solar:load(args)
+    -- SIMPLE TRANSITION IN --
+    local vol = love.audio.getVolume()
+    while vol < 1 do
+        love.audio.setVolume(vol)
+        vol = love.audio.getVolume() + 0.1
+    end
+    ---------------------------
+
     local systemDat = args.planets  
     
     math.randomseed(systemDat.config.seed)
@@ -254,6 +262,14 @@ function solar:keypressed(key)
         ship.body:setPosition(width/4, height/4)
     end
     if key == "return" then
+        -- SIMPLE TRANSITION OUT --
+        local vol = love.audio.getVolume()
+        while vol > 0 do
+            love.audio.setVolume(vol)
+            vol = love.audio.getVolume() - 0.1
+        end
+        ---------------------------
+
         love.audio.stop()
 
         local snapshot = planets:snapshot()

@@ -9,7 +9,7 @@ local Galaxy = require("classes.galaxy")
 
 function gal:load(args)
     if args and args.index and args.snapshot then 
-        galaxy.system[args.index].snapshot = args.snapshot 
+        galaxy.solarSystems[args.index].snapshot = args.snapshot 
     end
 
     if not world then world = love.physics.newWorld(0, 0, true) end
@@ -17,13 +17,13 @@ function gal:load(args)
 
     if not galaxy then
         local sysConf = {
-            numSystems = 5,
-            numPlanets = 7,  -- shouldnt exceed the number of audio loops available
+            systems = 5,
+            planets = 7,  -- shouldnt exceed the number of audio loops available
             planetMinRadius = 5,
             planetMaxRadius = 25
         }
 
-        galaxy = Galaxy:new("TEMP_INDEX", sysConf, world)
+        galaxy = Galaxy:new(world, sysConf, "TEMP_INDEX")
     end
 
     if not sys_select then sys_select = 1 end
@@ -31,6 +31,18 @@ end
 
 function gal:draw()
     love.graphics.print("press enter to go to solar system #" .. sys_select, 200, 300)
+
+    -- Draw stars/solar systems
+    for _, planet in ipairs(galaxy.system) do        
+        local color = planet.alive and planet.color or galaxy:getGrey(planet.color)
+        
+        love.graphics.setColor(color)
+        love.graphics.circle("fill", planet.body:getX(), planet.body:getY(), planet.shape:getRadius())
+
+        if planet.activationTime then
+            galaxy:activateBody(planet)
+        end
+    end
 end
 
 function gal:update(dt)
@@ -38,7 +50,7 @@ end
 
 function gal:keypressed(key)
     if(tonumber(key)) then
-        sys_select = H.clamp(tonumber(key), 1, #galaxy.system)
+        sys_select = H.clamp(tonumber(key), 1, #galaxy.solarSystems)
     end
 
     if key == "return" then
@@ -46,7 +58,7 @@ function gal:keypressed(key)
             "solsys",  
             {   
                 ship = ship, 
-                planets = galaxy.system[sys_select], 
+                planets = galaxy.solarSystems[sys_select], 
                 index = sys_select,
                 world = world
             }
