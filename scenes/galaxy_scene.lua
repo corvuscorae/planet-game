@@ -70,26 +70,26 @@ end
 -- end
 
 function gal:mousepressed(x, y, button, istouch)
-        if button == 1 then -- left mouse button
-            -- check if one of the systems are clicked
-            for i,system in pairs(galaxy.system) do
-                local sysX, sysY = system.body:getPosition()
-                local r = system.radius
+    if button == 1 then -- left mouse button
+        -- check if one of the systems are clicked
+        for i,system in pairs(galaxy.system) do
+            local sysX, sysY = system.body:getPosition()
+            local r = system.radius
 
-                if x <= sysX + r and x >= sysX - r and y <= sysY + r and y >= sysY - r then
-                    gal.setScene(
-                        "solsys",  
-                        {   
-                            ship = ship, 
-                            planets = galaxy.solarSystems[i], 
-                            index = i,
-                            world = world
-                        }
-                    )
-                end
-
+            if x <= sysX + r and x >= sysX - r and y <= sysY + r and y >= sysY - r then
+                gal.setScene(
+                    "solsys",  
+                    {   
+                        ship = ship, 
+                        planets = galaxy.solarSystems[i], 
+                        index = i,
+                        world = world
+                    }
+                )
             end
+
         end
     end
+end
 
 return gal

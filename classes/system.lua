@@ -113,8 +113,6 @@ function System:addBody(angle, dist, min, max, isCore)
         body.fixture:setMask(self.mask) 
     end
 
-    print(self.bodyType, self.mask)
-
     table.insert(self.system, body)
     body.fixture:setUserData({ id=self.bodyType, index=#self.system })
 end

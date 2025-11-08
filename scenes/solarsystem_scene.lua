@@ -2,6 +2,7 @@ local SolarSystem = require("classes.solar_system")
 
 local Settings = require("utils.settings") 
 local solar = {}
+local debugMode = false
 
 function solar:load(args)
     -- SIMPLE TRANSITION IN --
@@ -227,6 +228,11 @@ function solar:draw()
         love.graphics.polygon("fill", 0, 15, 5, 25, -5, 25)
     end
     ]]
+
+    if debugMode then
+        love.graphics.print("DEBUG MODE: click to activate", 10, 10)
+    end
+
 end
 
 function beginContact(a, b, coll)
@@ -280,6 +286,30 @@ function solar:keypressed(key)
         ship.body:setPosition(width/4, height/4)
         
         solar.setScene("galaxy", {index = index, snapshot = snapshot})
+    end
+
+    if key=="d" then
+        debugMode = not debugMode
+    end
+end
+
+-- DEBUG MODE
+function solar:mousepressed(x, y, button, istouch)
+    if debugMode then
+        if button == 1 then -- left mouse button
+            -- check if one of the systems are clicked
+            for i,planet in pairs(planets.system) do
+                local sysX, sysY = planet.body:getPosition()
+                local r = planet.radius
+
+                if x <= sysX + r and x >= sysX - r and y <= sysY + r and y >= sysY - r then
+                    if planets.system[1].alive or i == 1 then
+                        planet.activationTime = love.timer.getTime() -- trigger planet destruction
+                    end
+                end
+
+            end
+        end
     end
 end
 
