@@ -15,6 +15,7 @@ function gal:load(args)
     if not world then world = love.physics.newWorld(0, 0, true) end
     if not ship then ship = Ship:new(world, width/4, height/4) end
 
+    local mask = 1
     if not galaxy then
         local sysConf = {
             systems = 5,
@@ -23,14 +24,15 @@ function gal:load(args)
             planetMaxRadius = 25
         }
 
-        galaxy = Galaxy:new(world, sysConf, "TEMP_INDEX")
+        galaxy = Galaxy:new(world, sysConf, "TEMP_INDEX", 30, 100, mask)
     end
 
     if not sys_select then sys_select = 1 end
 end
 
 function gal:draw()
-    love.graphics.print("press enter to go to solar system #" .. sys_select, 200, 300)
+    -- LEGACY
+    -- love.graphics.print("press enter to go to solar system #" .. sys_select, 200, 300)
 
     -- Draw stars/solar systems
     for _, planet in ipairs(galaxy.system) do        
@@ -48,22 +50,46 @@ end
 function gal:update(dt)
 end
 
-function gal:keypressed(key)
-    if(tonumber(key)) then
-        sys_select = H.clamp(tonumber(key), 1, #galaxy.solarSystems)
-    end
+-- LEGACY --
+-- function gal:keypressed(key)
+--     if(tonumber(key)) then
+--         sys_select = H.clamp(tonumber(key), 1, #galaxy.solarSystems)
+--     end
 
-    if key == "return" then
-        gal.setScene(
-            "solsys",  
-            {   
-                ship = ship, 
-                planets = galaxy.solarSystems[sys_select], 
-                index = sys_select,
-                world = world
-            }
-        )
+--     if key == "return" then
+--         gal.setScene(
+--             "solsys",  
+--             {   
+--                 ship = ship, 
+--                 planets = galaxy.solarSystems[sys_select], 
+--                 index = sys_select,
+--                 world = world
+--             }
+--         )
+--     end
+-- end
+
+function gal:mousepressed(x, y, button, istouch)
+        if button == 1 then -- left mouse button
+            -- check if one of the systems are clicked
+            for i,system in pairs(galaxy.system) do
+                local sysX, sysY = system.body:getPosition()
+                local r = system.radius
+
+                if x <= sysX + r and x >= sysX - r and y <= sysY + r and y >= sysY - r then
+                    gal.setScene(
+                        "solsys",  
+                        {   
+                            ship = ship, 
+                            planets = galaxy.solarSystems[i], 
+                            index = i,
+                            world = world
+                        }
+                    )
+                end
+
+            end
+        end
     end
-end
 
 return gal

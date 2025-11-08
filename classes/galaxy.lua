@@ -4,8 +4,8 @@ local Galaxy = {}
 Galaxy.__index = Galaxy
 setmetatable(Galaxy, {__index = System})
 
-function Galaxy:new(world, config, index)
-    local instance = System:new(world, "galaxy")
+function Galaxy:new(world, config, index, minRadius, maxRadius, mask)
+    local instance = System:new(world, "galaxy", minRadius, maxRadius, 1000, mask)
     setmetatable(instance, Galaxy)
 
     instance.index = index
@@ -16,7 +16,7 @@ function Galaxy:new(world, config, index)
 
     -- make a drawable system to represent galaxy
     if type(config.systems) == "number" then
-        instance:generateSystem(config.systems)
+        instance:generateSystem(config.systems, 1, true)
     else -- assuming it's a snapshot
         instance:loadSnapshot(config.systems, world)
     end

@@ -21,7 +21,7 @@ local width, height = Settings.width, Settings.height
 local System = {}
 System.__index = System
 
-function System:new(world, bodyType, minRadius, maxRadius, maxAttempts)
+function System:new(world, bodyType, minRadius, maxRadius, maxAttempts, mask)
     local instance = {
         index = index,
         system = {}
@@ -33,15 +33,16 @@ function System:new(world, bodyType, minRadius, maxRadius, maxAttempts)
     self.minRadius = minRadius or 3
     self.maxRadius = maxRadius or 10
     self.maxAttempts = maxAttempts or 1000
+    self.mask = mask
 
     return instance
 end
 
-function System:generateSystem(numBodies, startIndex)
-    self:addBodies(numBodies, startIndex)
+function System:generateSystem(numBodies, startIndex, allCore) -- allCore is a temp fix to force all bodies to be static
+    self:addBodies(numBodies, startIndex, allCore)
 end
 
-function System:addBodies(numBodies, startIndex)
+function System:addBodies(numBodies, startIndex, allCore)
     if not startIndex then startIndex = 1 end
 
     for i = startIndex, numBodies do
@@ -70,7 +71,7 @@ function System:addBodies(numBodies, startIndex)
             end
     
             if not tooClose then
-                self:addBody(angle, dist, self.minRadius, self.maxRadius)
+                self:addBody(angle, dist, self.minRadius, self.maxRadius, allCore or false)
                 placed = true
             end
         end
@@ -79,6 +80,43 @@ function System:addBodies(numBodies, startIndex)
             print("couldn't place " .. self.bodyType .. " " .. i .. " without overlap after " .. self.maxAttempts .. " attempts.")
         end
     end
+end
+
+function System:addBody(angle, dist, min, max, isCore)
+    local forceColor = isCore and {1,1,1} or nil
+
+    local bodyType = isCore and "static" or "dynamic"
+
+    local x = width / 2 + math.cos(angle) * dist
+    local y = height / 2 + math.sin(angle) * dist
+
+    local radius = love.math.random(min, max)
+
+    local body = {}
+
+    body.alive = false
+    
+    body.color = forceColor or colorBag:next()
+    body.loop = loopBag:next()
+    body.core = isCore
+    body.angle = angle
+    body.dist = dist
+    body.radius = radius
+    body.shape = love.physics.newCircleShape(radius)
+    body.rotationSpeed = radius / 150 
+    body.activationTime = nil
+
+    body.body = love.physics.newBody(self.world, x, y, bodyType)
+    body.fixture = love.physics.newFixture(body.body, body.shape)
+    if self.mask then 
+        body.fixture:setCategory(self.mask) 
+        body.fixture:setMask(self.mask) 
+    end
+
+    print(self.bodyType, self.mask)
+
+    table.insert(self.system, body)
+    body.fixture:setUserData({ id=self.bodyType, index=#self.system })
 end
 
 function System:activateBody(body, overrideCore)
@@ -177,37 +215,6 @@ function System:moveBody(body, dt)
     local y = height / 2 + math.sin(body.angle) * body.dist
 
     body.body:setPosition(x,y)
-end
-
-function System:addBody(angle, dist, min, max, isCore)
-    local forceColor = isCore and {1,1,1} or nil
-
-    local bodyType = isCore and "static" or "dynamic"
-
-    local x = width / 2 + math.cos(angle) * dist
-    local y = height / 2 + math.sin(angle) * dist
-
-    local radius = love.math.random(min, max)
-
-    local body = {}
-
-    body.alive = false
-    
-    body.color = forceColor or colorBag:next()
-    body.loop = loopBag:next()
-    body.core = isCore
-    body.angle = angle
-    body.dist = dist
-    body.radius = radius
-    body.shape = love.physics.newCircleShape(radius)
-    body.rotationSpeed = radius / 150 
-    body.activationTime = nil
-
-    body.body = love.physics.newBody(self.world, x, y, bodyType)
-    body.fixture = love.physics.newFixture(body.body, body.shape)
-
-    table.insert(self.system, body)
-    body.fixture:setUserData({ id=self.bodyType, index=#self.system })
 end
 
 function System:getGrey(color)
