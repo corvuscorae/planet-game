@@ -6,7 +6,6 @@ local H = require("utils.helpers")
 
 --------------------------------------------------
 local ShuffleBag = require("classes.shufflebag")
-local loops = require("assets.loops")
 local colors = {
     {1, 0.5, 0.4},  -- pink
     {1, 0.7, 0.4},  -- light orange
@@ -16,18 +15,18 @@ local colors = {
     {0.5, 0.4, 1}   -- periwinkle
 }
 local colorBag = ShuffleBag.new(colors)
-local loopBag = ShuffleBag.new(loops)
 --------------------------------------------------
 
 local SolarSystem = {}
 SolarSystem.__index = SolarSystem
 setmetatable(SolarSystem, {__index = System})
 
-function SolarSystem:new(world, planets, minRadius, maxRadius, maxAttempts)
+function SolarSystem:new(world, planets, minRadius, maxRadius, song, maxAttempts)
     local instance = System:new(world, "planet", minRadius, maxRadius, maxAttempts)
     setmetatable(instance, SolarSystem)
     
     instance.type = "solar_system"
+    instance.song = song
 
     if type(planets) == "number" then
         instance:generateSystem(planets)
@@ -65,7 +64,7 @@ function SolarSystem:addBody(angle, dist, radius, isCore, state)
     local body = Body:new(config, pos, state)
 
     -- adding planet specific stuff to body
-    body.loop = loopBag:next()
+    -- body.loop = self.loopBag:next()
     body.color = forceColor or colorBag:next()
     body.rendering = {
         func = function ()
@@ -83,6 +82,10 @@ function SolarSystem:addBody(angle, dist, radius, isCore, state)
 
     table.insert(self.system, body)
     body.fixture:setUserData({ id=self.bodyType, index=#self.system })
+
+    if body.core then
+        body.song = self.song
+    end
 
     return body
 end
@@ -104,11 +107,13 @@ function SolarSystem:activateBody(body, overrideCore)
         love.graphics.setColor(1, 0.5, 0.1, 0.8)
         love.graphics.circle("fill", body.body:getX(), body.body:getY(), 5*body.shape:getRadius())
     else
-        -- Play loop
-        if not body.loop:isPlaying() then
-            body.loop:setVolume(0.7)
-            body.loop:setLooping(true)
-            love.audio.play(body.loop)
+        if body.core then
+            -- Play song
+            if not body.song:isPlaying() then
+                body.song:setVolume(0.7)
+                body.song:setLooping(true)
+                love.audio.play(body.song)
+            end
         end
 
         if not body.alive then

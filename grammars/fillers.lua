@@ -1,4 +1,4 @@
-local tags = require("assets.songs._tags")
+local tags = require("assets.songs._tags").tags
 local ShuffleBag = require("classes.shufflebag")
 local H = require("utils.helpers")
 

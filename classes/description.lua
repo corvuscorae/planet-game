@@ -23,10 +23,11 @@ function Description:generate()
 
     while result:find(("%#(.%a+)%#")) do
         local _,index,found = result:find("%#(.%a+)%#")
-        table.insert(tags, found)
 
         local catBag = fillers[found]   -- get filler values
         local fill = catBag:next()
+
+        tags[found] = fill
         result = result:gsub(("%#".. found .."%#"), fill, 1)
     end
 

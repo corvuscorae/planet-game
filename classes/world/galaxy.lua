@@ -1,24 +1,13 @@
 local System = require("classes.world.system")
 local Description = require("classes.description")
-local songs = require("assets.songs._tags")
 local Body = require("classes.world.body")
 local Settings = require("utils.settings") 
 local width, height = Settings.width, Settings.height
+local H = require("utils.helpers")
 
---------------------------------------------------
 local ShuffleBag = require("classes.shufflebag")
-local loops = require("assets.loops")
-local colors = {
-    {1, 0.5, 0.4},  -- pink
-    {1, 0.7, 0.4},  -- light orange
-    {1, 0.9, 0.4},  -- light yellow
-    {0.4, 1, 0.7},  -- greenish-blue
-    {0.4, 1.7, 1},  -- light blue
-    {0.5, 0.4, 1}   -- periwinkle
-}
-local colorBag = ShuffleBag.new(colors)
-local loopBag = ShuffleBag.new(loops)
---------------------------------------------------
+local songs = require("assets.songs._tags")
+local songKeys = ShuffleBag.new(H.getKeys(songs.tags))
 
 local Galaxy = {}
 Galaxy.__index = Galaxy
@@ -58,6 +47,7 @@ function Galaxy:populate(config, world)
                 numPlanets = config.planets, 
                 planetMinRadius = config.planetMinRadius, 
                 planetMaxRadius = config.planetMaxRadius, 
+                song = self:getSong(),
                 seed = math.random(0, 10000)
             },
             snapshot = nil,
@@ -90,6 +80,26 @@ function Galaxy:addBody(angle, dist, radius)
     body.color = {1,1,1}
 
     table.insert(self.system, body)
+end
+
+function Galaxy:getSong()
+    local match = nil
+
+    while not match do
+        -- get a random song
+        local key = songKeys:next()
+        local song = songs.tags[key]
+
+        -- if song has a matching tag, add it to table
+        for cat,tag in pairs(self.description.tags) do
+            if(H.tableHas(song[cat], tag)) then
+                local sourceLoc = songs.path .. "full/" .. key .. songs.ext
+                match = love.audio.newSource(sourceLoc, "stream")
+            end
+        end
+    end
+
+    return match
 end
 
 return Galaxy

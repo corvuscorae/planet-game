@@ -19,7 +19,7 @@ function gal:load(args)
     if not galaxy then
         local sysConf = {
             systems = 5,
-            planets = 7,  -- shouldnt exceed the number of audio loops available
+            planets = 7,  
             planetMinRadius = 5,
             planetMaxRadius = 25
         }

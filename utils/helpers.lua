@@ -40,4 +40,14 @@ function H.getGrey(color)
     return {grey, grey, grey}    
 end
 
+function H.getKeys(t)
+    local keys = {}
+
+    for key,_ in pairs(t) do
+        table.insert(keys, key)
+    end
+
+    return keys
+end
+
 return H
