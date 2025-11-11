@@ -27,6 +27,8 @@ function gal:load(args)
         galaxy = Galaxy:new(world, sysConf, "TEMP_INDEX", 30, 100, mask)
     end
 
+    print(galaxy.description.filled)
+
     if not sys_select then sys_select = 1 end
 end
 

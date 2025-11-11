@@ -6,7 +6,8 @@ function ShuffleBag.new(source)
     local bag = {
         source = source,
         items = {},
-        index = 1
+        index = 1,
+        size = #source
     }
     setmetatable(bag, ShuffleBag)
     bag:reshuffle()

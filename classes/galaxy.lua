@@ -1,4 +1,5 @@
 local System = require("classes.system")
+local Description = require("classes.description")
 
 local Galaxy = {}
 Galaxy.__index = Galaxy
@@ -9,6 +10,9 @@ function Galaxy:new(world, config, index, minRadius, maxRadius, mask)
     setmetatable(instance, Galaxy)
 
     instance.index = index
+
+    -- description
+    instance.description = Description:new()
 
     -- generate a collection of solar systems
     instance.solarSystems = instance:populate(config, world)
