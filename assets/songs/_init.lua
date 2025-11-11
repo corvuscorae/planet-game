@@ -1,4 +1,5 @@
-local files = love.filesystem.getDirectoryItems("assets/songs")
+local path = "assets/songs/vocals/"
+local files = love.filesystem.getDirectoryItems(path)
 
 local i = {}
 
@@ -22,17 +23,16 @@ end
 -- this will rename all files so they don't have spaces, 
 --  and will also print filenames (without ext) (so we can copy/paste them to the tags object)
 function i.initFiles(log)
-    local ext = ".wav"
+    local ext = ".mp3"
 
     for _, origName in ipairs(files) do
-        local info = love.filesystem.getInfo("assets/songs/" .. origName)
+        local info = love.filesystem.getInfo(path .. origName)
         if info and info.type == "file" and origName ~= "_tags.lua" and origName ~= "_init.lua" then
             local format = formatName(origName, ext)
-
             if #format > 0 then
                 -- remove spaces and rename file
                 -- https://www.gammon.com.au/scripts/doc.php?lua=os.rename
-                os.rename("assets/songs/" .. origName, "assets/songs/" .. format)
+                os.rename(path .. origName, path .. format)
 
                 local _,__,param = format:find("(.+)%" .. ext .. "$")
                 if log then print(param .. " = {},") end
