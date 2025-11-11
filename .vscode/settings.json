@@ -1,8 +1,10 @@
 {
     "Lua.diagnostics.globals": [
-        "love"
+        "love",
+        "endContact"
     ],
     "Lua.diagnostics.disable": [
-        "lowercase-global"
+        "lowercase-global",
+        "undefined-global"
     ]
 }

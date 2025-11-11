@@ -1,3 +1,4 @@
+---@diagnostic disable: deprecated
 local H = {}
 
 function H.clamp(value, min, max)
