@@ -22,9 +22,7 @@ end
 
 -- this will rename all files so they don't have spaces, 
 --  and will also print filenames (without ext) (so we can copy/paste them to the tags object)
-function i.initFiles(log)
-    local ext = ".mp3"
-
+function i.initFiles(ext, log)
     for _, origName in ipairs(files) do
         local info = love.filesystem.getInfo(path .. origName)
         if info and info.type == "file" and origName ~= "_tags.lua" and origName ~= "_init.lua" then

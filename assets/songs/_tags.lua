@@ -1,5 +1,7 @@
 local init = require("assets.songs._init")
-init.initFiles(false)
+
+local ext = ".mp3"
+init.initFiles(ext, false)
 
 local tags = {
     All_Your_n = {
@@ -524,4 +526,4 @@ local tags = {
     },
 }
 
-return tags
+return tags, ext
