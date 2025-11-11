@@ -1,5 +1,24 @@
-local System = require("classes.system")
+local System = require("classes.world.system")
 local Description = require("classes.description")
+local songs = require("assets.songs._tags")
+local Body = require("classes.world.body")
+local Settings = require("utils.settings") 
+local width, height = Settings.width, Settings.height
+
+--------------------------------------------------
+local ShuffleBag = require("classes.shufflebag")
+local loops = require("assets.loops")
+local colors = {
+    {1, 0.5, 0.4},  -- pink
+    {1, 0.7, 0.4},  -- light orange
+    {1, 0.9, 0.4},  -- light yellow
+    {0.4, 1, 0.7},  -- greenish-blue
+    {0.4, 1.7, 1},  -- light blue
+    {0.5, 0.4, 1}   -- periwinkle
+}
+local colorBag = ShuffleBag.new(colors)
+local loopBag = ShuffleBag.new(loops)
+--------------------------------------------------
 
 local Galaxy = {}
 Galaxy.__index = Galaxy
@@ -49,6 +68,28 @@ function Galaxy:populate(config, world)
     end
 
     return g
+end
+
+function Galaxy:addBody(angle, dist, radius)
+    local config = {
+        world = world,
+        isCore = false,
+        mask = self.mask,
+        type = "static"
+    }
+
+    local pos = {
+        x = width / 2 + math.cos(angle) * dist,
+        y = height / 2 + math.sin(angle) * dist,
+        radius = radius,
+    }
+
+    local body = Body:new(config, pos)
+    body.fixture:setUserData({ id=self.bodyType, index=#self.system })
+
+    body.color = {1,1,1}
+
+    table.insert(self.system, body)
 end
 
 return Galaxy

@@ -1,4 +1,4 @@
-local SolarSystem = require("classes.solar_system")
+local SolarSystem = require("classes.world.solar_system")
 
 local Settings = require("utils.settings") 
 local solar = {}
@@ -66,7 +66,7 @@ function solar:update(dt)
 
         if distSq > 0.1 then -- prevent divide by zero
             local forceMag = (gravityStrength*planet.shape:getRadius()) / distSq
-            local angle = math.atan2(dy, dx)
+            local angle = math.atan(dy, dx)
             local fx = math.cos(angle) * forceMag
             local fy = math.sin(angle) * forceMag
             ship.body:applyForce(fx, fy)
@@ -202,10 +202,11 @@ function solar:draw()
 
     -- Draw planets
     for _, planet in ipairs(planets.system) do        
-        local color = planet.alive and planet.color or planets:getGrey(planet.color)
+        -- local color = planet.alive and planet.color or planets:getGrey(planet.color)
         
-        love.graphics.setColor(color)
-        love.graphics.circle("fill", planet.body:getX(), planet.body:getY(), planet.shape:getRadius())
+        -- love.graphics.setColor(color)
+        -- love.graphics.circle("fill", planet.body:getX(), planet.body:getY(), planet.shape:getRadius())
+        planet:render()
 
         if planet.activationTime then
             planets:activateBody(planet)
@@ -242,7 +243,6 @@ function beginContact(a, b, coll)
     -- Planet-Player collision
     if (aData.id == "planet" and bData.id == "ship") or
        (aData.id == "ship" and bData.id == "planet") then
-
         for _, planet in ipairs(planets.system) do
             if not planet.alive then
                 local pData = planet.fixture:getUserData()

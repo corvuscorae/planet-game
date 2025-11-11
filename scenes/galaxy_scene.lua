@@ -5,7 +5,7 @@ local width, height = Settings.width, Settings.height
 local Ship = require("classes.ship")
 
 local gal = {}
-local Galaxy = require("classes.galaxy")
+local Galaxy = require("classes.world.galaxy")
 
 function gal:load(args)
     if args and args.index and args.snapshot then 
@@ -38,7 +38,7 @@ function gal:draw()
 
     -- Draw stars/solar systems
     for _, planet in ipairs(galaxy.system) do        
-        local color = planet.alive and planet.color or galaxy:getGrey(planet.color)
+        local color = planet.alive and planet.color or H.getGrey(planet.color)
         
         love.graphics.setColor(color)
         love.graphics.circle("fill", planet.body:getX(), planet.body:getY(), planet.shape:getRadius())
