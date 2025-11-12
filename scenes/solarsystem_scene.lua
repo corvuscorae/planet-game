@@ -38,7 +38,7 @@ function solar:load(args)
         systemDat.snapshot or systemDat.config.numPlanets,
         systemDat.config.planetMinRadius,
         systemDat.config.planetMaxRadius,
-        systemDat.config.song,
+        systemDat.config.audio,
         1000
     )
     -- systemDat.visited = true

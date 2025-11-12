@@ -21,12 +21,12 @@ local SolarSystem = {}
 SolarSystem.__index = SolarSystem
 setmetatable(SolarSystem, {__index = System})
 
-function SolarSystem:new(world, planets, minRadius, maxRadius, song, maxAttempts)
+function SolarSystem:new(world, planets, minRadius, maxRadius, audio, maxAttempts)
     local instance = System:new(world, "planet", minRadius, maxRadius, maxAttempts)
     setmetatable(instance, SolarSystem)
     
     instance.type = "solar_system"
-    instance.song = song
+    instance.audio = audio
 
     if type(planets) == "number" then
         instance:generateSystem(planets)
@@ -43,6 +43,9 @@ function SolarSystem:generateSystem(numPlanets)
     self:addBody(0, 0, self.maxRadius*m, true)
 
     self:addBodies(numPlanets, 2)
+
+    -- randomly give one planet a layer
+    self.system[math.random(2, #self.system)].layer = self.audio.layer
 end
 
 function SolarSystem:addBody(angle, dist, radius, isCore, state)
@@ -84,7 +87,7 @@ function SolarSystem:addBody(angle, dist, radius, isCore, state)
     body.fixture:setUserData({ id=self.bodyType, index=#self.system })
 
     if body.core then
-        body.song = self.song
+        body.song = self.audio.song
     end
 
     return body
@@ -113,6 +116,13 @@ function SolarSystem:activateBody(body, overrideCore)
                 body.song:setVolume(0.7)
                 body.song:setLooping(true)
                 love.audio.play(body.song)
+            end
+        elseif body.layer then
+            if not body.layer.song:isPlaying() then
+                body.layer.song:setVolume(0.7)
+                body.layer.song:setLooping(true)
+                body.layer.song:setPitch(body.layer.pitch)
+                love.audio.play(body.layer.song)
             end
         end
 

@@ -325,8 +325,8 @@ local tags = {
         SPECIAL = {"queer", "lesbian"},
         VIBES = {"sexy"},
         METRICS = {
-            BPM = "B",
-            KEY = "86",
+            BPM = "86",
+            KEY = "B",
             TIME_SIG = "4/4"
         }
     },
