@@ -140,6 +140,7 @@ function SolarSystem:snapshot()
             dist = body.dist,
             radius = body.radius,
             core = body.core,
+            layer = body.layer,
             state = {alive=body.alive, activationTime=body.activationTime}
         }
     end
